@@ -14,7 +14,7 @@ Catatan jadwal: cron `*/3` pada hari-dalam-bulan jatuh di tanggal 1, 4, 7, ..., 
 ## Pengaturan awal (dilakukan pemilik)
 1. Buat bot lewat BotFather, ambil chat ID, simpan secrets `TELEGRAM_BOT_TOKEN` dan `TELEGRAM_CHAT_ID` di Settings > Secrets and variables > Actions.
 2. Jalankan workflow `scrape` sekali dari tab Actions. Pesan Telegram harus tiba dan commit data baru muncul.
-3. Fixture tes `tests/fixtures/steam_search_id.json` saat ini SINTETIS (dibuat tanpa akses ke Steam). Setelah ada hasil nyata, bandingkan bentuk respons Steam dengan fixture dan sesuaikan `scraper/steam.py` bila perlu.
+3. Fixture tes `tests/fixtures/steam_search_id.json` adalah respons ASLI Steam (diambil 15 November 2026). Kalau Steam mengubah format halamannya, bot akan mengirim pesan "format tidak dikenali" dan `scraper/steam.py` perlu disesuaikan.
 4. Pasang dashboard di Streamlit Community Cloud: repositori ini, file utama `dashboard/app.py`.
 
 ## Menjalankan lokal

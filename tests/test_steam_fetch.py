@@ -14,8 +14,9 @@ def _row(i):
     return (
         f'<a href="https://store.steampowered.com/app/{i}/G{i}/?snr=1" data-ds-appid="{i}" class="search_result_row">'
         f'<span class="title">Game {i}</span>'
-        f'<div class="col search_discount responsive_secondrow"><span>-50%</span></div>'
-        f'<div class="col search_price discounted"><span><strike>Rp 100.000</strike></span><br>Rp 50.000</div></a>'
+        f'<div class="discount_block"><div class="discount_pct">-50%</div><div class="discount_prices">'
+        f'<div class="discount_original_price">Rp 100 000</div><div class="discount_final_price">Rp 50 000</div>'
+        f'</div></div></a>'
     )
 
 
@@ -68,3 +69,14 @@ def test_fetch_raises_after_three_failures():
 def test_fetch_respects_robots_disallow():
     with pytest.raises(ScrapeError):
         fetch_deals(session=fake_pages(total=50, robots='Disallow: /'), delay=0)
+
+
+def test_fetch_reports_unrecognized_format_instead_of_silent_empty():
+    class Odd(FakeSession):
+        def get(self, url, params=None, headers=None, timeout=None):
+            if url.endswith('/robots.txt'):
+                return FakeResp(200, 'User-agent: *\n')
+            return FakeResp(200, json.dumps({'total_count': 5, 'results_html': '<a class="search_result_row"><b>x</b></a>'}))
+
+    with pytest.raises(ScrapeError, match='format'):
+        fetch_deals(session=Odd(), delay=0)

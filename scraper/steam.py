@@ -19,9 +19,9 @@ class ScrapeError(Exception):
 _ROW = re.compile(r'<a\s(?P<attrs>[^>]*?data-ds-appid="(?P<id>\d+)"[^>]*)>(?P<body>.*?)</a>', re.S)
 _HREF = re.compile(r'href="([^"]+)"')
 _TITLE = re.compile(r'<span class="title">(.*?)</span>', re.S)
-_PCT = re.compile(r'search_discount[^"]*"><span>-(\d+)%</span>')
-_STRIKE = re.compile(r'<strike>(.*?)</strike>', re.S)
-_FINAL = re.compile(r'<br>\s*([^<]+)')
+_PCT = re.compile(r'class="discount_pct"[^>]*>-?(\d+)%</div>')
+_ORIGINAL = re.compile(r'class="discount_original_price">(.*?)</div>', re.S)
+_FINAL = re.compile(r'class="discount_final_price">(.*?)</div>', re.S)
 
 
 def parse_price(text: str) -> int | None:
@@ -39,12 +39,12 @@ def parse_deals(raw: str) -> list[Deal]:
     deals: list[Deal] = []
     for m in _ROW.finditer(results_html):
         body = m.group('body')
-        title, pct, strike, final = (
-            _TITLE.search(body), _PCT.search(body), _STRIKE.search(body), _FINAL.search(body)
+        title, pct, original, final = (
+            _TITLE.search(body), _PCT.search(body), _ORIGINAL.search(body), _FINAL.search(body)
         )
-        if not (title and pct and strike and final):
+        if not (title and pct and original and final):
             continue
-        normal, now = parse_price(strike.group(1)), parse_price(final.group(1))
+        normal, now = parse_price(original.group(1)), parse_price(final.group(1))
         if normal is None or now is None:
             continue
         href = _HREF.search(m.group('attrs'))
@@ -94,6 +94,8 @@ def fetch_deals(limit: int = 50, cc: str = 'id', session: requests.Session | Non
             time.sleep(delay)
         page = parse_deals(raw)
         if not page:
+            if not deals and 'search_result_row' in raw:
+                raise ScrapeError('Steam mengembalikan data tetapi format tidak dikenali (parser perlu diperbarui)')
             break
         for d in page:
             if d.app_id not in seen:
