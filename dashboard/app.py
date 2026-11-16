@@ -7,7 +7,7 @@ sys.path.insert(0, str(ROOT))
 
 import streamlit as st  # noqa: E402
 
-from dashboard.views import changes_between, filter_deals  # noqa: E402
+from dashboard.views import changes_between, filter_deals, latest_per_game  # noqa: E402
 from store import load_all  # noqa: E402
 from summary import tier  # noqa: E402
 
@@ -25,10 +25,10 @@ runs = sorted(df['run_at'].unique())
 dates = sorted({r[:10] for r in runs})
 selected = st.sidebar.multiselect('Tanggal pengambilan', dates, default=dates)
 lo, hi = st.sidebar.slider('Rentang diskon (%)', 0, 100, (0, 100))
-view = filter_deals(df, selected, lo, hi)
+view = latest_per_game(filter_deals(df, selected, lo, hi), runs[-1])
 
 c1, c2, c3, c4 = st.columns(4)
-c1.metric('Total data', len(view))
+c1.metric('Jumlah game', len(view))
 c2.metric('Jumlah pengambilan', len(runs))
 c3.metric('Rata-rata diskon', f"{view['discount_pct'].mean():.0f}%" if len(view) else '-')
 c4.metric('Diskon terbesar', f"{view['discount_pct'].max()}%" if len(view) else '-')

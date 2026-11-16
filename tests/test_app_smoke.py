@@ -19,8 +19,9 @@ def test_app_renders_cards_and_changes_with_two_runs(tmp_path, monkeypatch):
     monkeypatch.setenv('DEALS_DATA_DIR', str(tmp_path))
     at = AppTest.from_file(APP).run(timeout=30)
     assert not at.exception
-    assert [m.label for m in at.metric] == ['Total data', 'Jumlah pengambilan', 'Rata-rata diskon', 'Diskon terbesar']
-    assert at.metric[1].value == '2'
+    assert [m.label for m in at.metric] == ['Jumlah game', 'Jumlah pengambilan', 'Rata-rata diskon', 'Diskon terbesar']
+    assert at.metric[0].value == '50' and at.metric[1].value == '2'
+    assert len(at.dataframe[0].value) == 50
 
 
 def test_app_shows_info_when_no_data(tmp_path, monkeypatch):

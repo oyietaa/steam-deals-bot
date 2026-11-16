@@ -31,3 +31,25 @@ def changes_between(df: pd.DataFrame, run_a: str, run_b: str) -> pd.DataFrame:
             'final_price_b': b.at[app_id, 'final_price'] if in_b else None,
         })
     return pd.DataFrame(rows, columns=_OUT)
+
+
+_LATEST_COLUMNS = [
+    'name', 'discount_pct', 'final_price', 'normal_price',
+    'pertama_terlihat', 'terakhir_terlihat', 'aktif', 'url',
+]
+
+
+def latest_per_game(df: pd.DataFrame, latest_run: str | None = None) -> pd.DataFrame:
+    if df.empty:
+        return pd.DataFrame(columns=_LATEST_COLUMNS)
+    ordered = df.sort_values('run_at', kind='stable')
+    grouped = ordered.groupby('app_id')
+    last = grouped.tail(1).copy()
+    last['pertama_terlihat'] = last['app_id'].map(grouped['run_at'].min())
+    last['terakhir_terlihat'] = last['run_at']
+    last['aktif'] = last['terakhir_terlihat'] == (latest_run or df['run_at'].max())
+    return (
+        last[_LATEST_COLUMNS]
+        .sort_values('discount_pct', ascending=False, kind='stable')
+        .reset_index(drop=True)
+    )

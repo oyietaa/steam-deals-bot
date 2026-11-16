@@ -1,6 +1,6 @@
 import pandas as pd
 
-from dashboard.views import changes_between, filter_deals
+from dashboard.views import changes_between, filter_deals, latest_per_game
 from store import COLUMNS
 
 RUN_A, RUN_B = '2026-11-16T00:00:00Z', '2026-11-17T00:00:00Z'
@@ -41,3 +41,28 @@ def test_empty_data_does_not_crash():
     empty = pd.DataFrame(columns=COLUMNS)
     assert filter_deals(empty, None, 0, 100).empty
     assert changes_between(empty, RUN_A, RUN_B).empty
+
+
+def test_latest_per_game_one_row_per_game():
+    assert len(latest_per_game(DF)) == 4
+
+
+def test_latest_per_game_uses_latest_row():
+    g = latest_per_game(DF).set_index('name').loc['Game 3']
+    assert (g.final_price, g.discount_pct) == (45000, 55)
+
+
+def test_latest_per_game_marks_active_and_first_last_seen():
+    out = latest_per_game(DF).set_index('name')
+    assert not out.loc['Game 1', 'aktif'] and out.loc['Game 4', 'aktif']
+    assert (out.loc['Game 2', 'pertama_terlihat'], out.loc['Game 2', 'terakhir_terlihat']) == (RUN_A, RUN_B)
+
+
+def test_latest_per_game_uses_given_latest_run():
+    only_a = DF[DF.run_at == RUN_A]
+    assert not latest_per_game(only_a, RUN_B).aktif.any()
+
+
+def test_latest_per_game_sorted_by_biggest_discount_and_empty_ok():
+    assert list(latest_per_game(DF).discount_pct) == sorted(latest_per_game(DF).discount_pct, reverse=True)
+    assert latest_per_game(pd.DataFrame(columns=COLUMNS)).empty

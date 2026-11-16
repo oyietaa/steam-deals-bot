@@ -7,7 +7,7 @@ Rencana: `docs/plans/2026-11-15-steam-deals-bot.md`.
 ## Cara kerja
 1. Workflow `scrape` (`.github/workflows/scrape.yml`) jalan terjadwal (cron `0 0 */3 * *`, 07.00 WIB) atau lewat tombol **Run workflow**.
 2. `run.py` mengambil data, membandingkannya dengan pengambilan sebelumnya, menyimpan CSV di `data/snapshots/` dan `data/all_deals.csv`, lalu mengirim pesan ke Telegram.
-3. Dashboard (`dashboard/app.py`) membaca `data/all_deals.csv`.
+3. Dashboard (`dashboard/app.py`) membaca `data/all_deals.csv` dan menampilkan tiap game sekali (baris pengambilan terbarunya). `all_deals.csv` sendiri tetap menyimpan satu baris per game per pengambilan, sehingga riwayat harga tetap ada.
 
 Catatan jadwal: cron `*/3` pada hari-dalam-bulan jatuh di tanggal 1, 4, 7, ..., 16, 19, ... tiap bulan. Untuk November 2026 jadwal otomatis berikutnya adalah 16 dan 19 November; pengambilan tambahan untuk demo dilakukan dengan **Run workflow**.
 
